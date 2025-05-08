@@ -14,7 +14,7 @@ Customer Relationship Management Basic for Information System Management
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/uhphuc/crm_ism
+git clone https://github.com/uhphuc/crm_ism.git
 cd crm_ism
 ```
 
