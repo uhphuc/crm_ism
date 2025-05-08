@@ -28,7 +28,7 @@ cd server
 npm install
 
 # For the client
-cd ../client
+cd ../client1
 npm install
 ```
 
