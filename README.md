@@ -83,7 +83,7 @@ npm start
 Navigate to the `client` directory and start the client:
 
 ```bash
-cd ../client
+cd ../client1
 npm run dev
 ```
 
