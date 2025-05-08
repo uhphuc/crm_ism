@@ -3,11 +3,7 @@ Customer Relationship Management Basic for Information System Management
 
 ## Overview
 
-
-
-## Prerequisites
-
-
+This is a comprehensive CRM system designed to help businesses manage customer interactions, sales pipelines, and team collaboration. The system features user management, customer tracking, and administrative controls with a modern, responsive interface.
 
 ## Setup Instructions
 
