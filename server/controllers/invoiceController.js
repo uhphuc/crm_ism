@@ -1,13 +1,18 @@
 const db = require('../models/index');
 const Invoice = db.Invoice;
 const Deal = db.Deal;
+const Customer = db.Customer;
 
 const { Op } = require('sequelize');
 
 exports.getAll = async (req, res) => {
   try {
     const invoices = await Invoice.findAll({
-      include: [{ model: Deal, as: 'deal' }],
+      include: [
+        { model: Deal, as: 'deal' },
+        { model: Customer, as: 'customer' },
+      ],
+
     });
     res.json(invoices);
   } catch (err) {
@@ -29,8 +34,27 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
+  const { amount, status, currency, dueDate, customerId, dealId} = req.body;
+  const tax = 0.1; // 10% tax
+  const totalAmount = Number(amount) + (Number(amount) * Number(tax));
+  const issueDate = new Date(); 
+  // Generate a unique invoice number base on the date and time but just 5 numbers
+  const invoiceNumber = `INV-${dealId}-${Math.floor(Math.random() * 1000)}`;
+  
+
   try {
-    const newInvoice = await Invoice.create({ ...req.body, created_by: req.user.id });
+    const newInvoice = await Invoice.create({ 
+      invoiceNumber,
+      amount,
+      customerId,
+      status,
+      currency,
+      dueDate,
+      tax,
+      totalAmount,
+      issueDate,
+      dealId,
+    });
     res.status(201).json(newInvoice);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -100,6 +124,19 @@ exports.getByStatus = async (req, res) => {
     const invoices = await Invoice.findAll({
       where: { status },
       include: [{ model: Deal, as: 'deal' }],
+    });
+    res.json(invoices);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+exports.getInvoicesByCustomerId = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+    const invoices = await Invoice.findAll({
+      where: { customerId },
+      include: [{ model: Customer, as: 'customer' }],
     });
     res.json(invoices);
   } catch (err) {

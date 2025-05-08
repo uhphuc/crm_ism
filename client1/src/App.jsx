@@ -6,7 +6,10 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import HomePage from './page/homePage.jsx';
 import AdminDashboard from './page/adminDashboard.jsx';
 import SalesDashboard from './page/salesDashboard.jsx';
+import CustomerDetail from './page/customerDetail.jsx';
+import Register from './page/signUp.jsx';
 import ProtectedRoute from './routes/protectedRoute.jsx';
+
 import { useAuth } from './hook/useAuth.jsx';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -23,13 +26,21 @@ function App() {
       <Routes>
         <Route path="/" element={<ProtectedRoute isAllowed={isSalesOrSupport}><MainLayout /></ProtectedRoute>}>
           <Route index element={<SalesDashboard/>} />
+          <Route path="customers/:id" element={<CustomerDetail />} />
           {/* Add more routes here */}
         </Route>
-        <Route path='login' element={<SignIn />} />
+
+        <Route path='/' element={<MainLayout />}>
+          <Route path="login" element={<SignIn />} />
+          <Route path="signup" element={<Register />} />
+        </Route>
 
         <Route path="/admin" element={<ProtectedRoute isAllowed={isAdmin}><MainLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
+          <Route path="customers/:id" element={<CustomerDetail />} />
+          {/* Add more routes here */}
         </Route>
+
 
         
       </Routes>

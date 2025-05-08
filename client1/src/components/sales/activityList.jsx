@@ -1,6 +1,6 @@
 import { FiPlus, FiCalendar, FiFileText, FiPhone, FiMail, FiCheckCircle } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
-import { getAllActivities, createActivity } from '../../api/sales';
+import { getActivitiesByUserId, createActivity } from '../../api/sales';
 import ActivityModal from './ActivityModal'; // You'll need to create this modal component
 import { useAuth } from '../../hook/useAuth';
 
@@ -18,7 +18,7 @@ const ActivityList = () => {
   const fetchActivities = async () => {
     try {
       setIsLoading(true);
-      const response = await getAllActivities();
+      const response = await getActivitiesByUserId(user.id);
       setActivities(response);
       setIsLoading(false);
     } catch (err) {

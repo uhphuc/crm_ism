@@ -3,6 +3,7 @@ const db = require('../models/index.js');
 const Deal = db.Deal;
 const Customer = db.Customer;
 const User = db.User;
+const Invoice = db.Invoice;
 
 // Tạo một deal mới
 exports.createDeal = async (req, res) => {
@@ -115,6 +116,7 @@ exports.getDeals = async (req, res) => {
             include: [
                 { model: Customer, as: 'customer' },
                 { model: User, as: 'user' },
+                { model: Invoice, as: 'invoices' }, // Thêm Invoice vào include
             ],
         });
 

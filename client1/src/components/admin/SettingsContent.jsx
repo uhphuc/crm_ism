@@ -1,6 +1,7 @@
 import { FiUser, FiLock, FiMail, FiBell, FiUserPlus } from 'react-icons/fi';
-import { useState } from 'react';
-import { addNewUser } from '../../api/admin';
+import { useState, useEffect } from 'react';
+import { addNewUser} from '../../api/admin';
+import { getUserById } from '../../api/detail';
 import { useAuth } from '../../hook/useAuth';
 
 const SettingsContent = () => {
@@ -14,6 +15,23 @@ const SettingsContent = () => {
   });
   const { user } = useAuth();
   const isAdmin = user && (user.role === 'admin' );
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await getUserById(user.id);
+        setFormData({
+          firstName: response.firstName,
+          lastName: response.lastName,
+          email: response.email,
+          role: response.role
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, [user.id]);
 
   const handleCreateManager = () => {
     const { firstName, lastName, email, role } = formData;

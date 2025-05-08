@@ -99,8 +99,18 @@ export const getAllActivities = async () => {
     console.error('Error fetching all activities:', error);
     throw error;
   }
-
 }
+
+export const getActivitiesByUserId = async (userId) => {
+  try {
+    const response = await api.get(`/activities/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching activities by user ID:', error);
+    throw error;
+  }
+}
+
 
 export const createActivity = async (activityData, userId) => {
   try {

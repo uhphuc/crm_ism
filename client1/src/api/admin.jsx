@@ -80,3 +80,33 @@ export const getAllActivities = async () => {
     throw error;
   }
 }
+
+export const getAllNotes = async () => {
+  try {
+    const response = await api.get('/notes');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    throw error;
+  }
+}
+
+export const createInvoice = async (invoiceData) => {
+  try {
+    const response = await api.post(`/invoices`, invoiceData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    throw error;
+  }
+}
+
+export const getAllInvoices = async () => {
+  try {
+    const response = await api.get('/invoices');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching invoices:', error);
+    throw error;
+  }
+}

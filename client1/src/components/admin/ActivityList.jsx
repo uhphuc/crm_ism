@@ -130,27 +130,8 @@ const ActivityList = () => {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg font-medium text-gray-900">Upcoming Activities</h2>
-        <div className="flex space-x-2">
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Activities</option>
-            <option value="today">Today</option>
-            <option value="upcoming">Upcoming</option>
-          </select>
-          <button
-            onClick={() => {
-              setCurrentActivity(null);
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700"
-          >
-            <FiPlus size={16} /> New
-          </button>
-        </div>
+        <h2 className="text-lg font-medium text-gray-900">Recent Activities</h2>
+
       </div>
       <div className="p-6">
         <div className="space-y-4">
@@ -188,7 +169,13 @@ const ActivityList = () => {
                     </div>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {activity.customer && `With ${activity.customer.firstName} ${activity.customer.lastName}`}
+                    <span className='font-semibold'>
+                      {activity.user && `By ${activity.user.firstName} ${activity.user.lastName} `}
+                    </span>
+                    to 
+                    <span className='font-semibold'>
+                      {activity.customer && ` ${activity.customer.firstName} ${activity.customer.lastName}`}
+                    </span>
                     {activity.description && ` - ${activity.description}`}
                   </p>
                   <div className="flex items-center mt-1 space-x-3">

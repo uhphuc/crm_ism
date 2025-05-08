@@ -1,31 +1,61 @@
 import { FiCalendar, FiPlus, FiCheck, FiClock, FiX, FiSearch } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { getAllActivities } from '../../api/admin';
 
 const ActivitiesContent = () => {
-  const activities = [
-    { id: 1, type: 'Meeting', title: 'Client presentation', date: 'Today, 2:00 PM', with: 'John Smith', status: 'Scheduled' },
-    { id: 2, type: 'Call', title: 'Follow-up call', date: 'Today, 4:30 PM', with: 'Sarah Johnson', status: 'Scheduled' },
-    { id: 3, type: 'Email', title: 'Proposal sent', date: 'Yesterday', with: 'Michael Brown', status: 'Completed' },
-    { id: 4, type: 'Task', title: 'Prepare contract', date: 'May 18, 2023', with: 'Emily Davis', status: 'Overdue' },
-  ];
+
+  const [activities, setActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('all'); // 'all', 'today', 'upcoming'
+
+  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+  
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getAllActivities(filter);
+        setActivities(response);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+      }
+    };
+    fetchActivities();
+  }, [filter]);
+
+  
 
   const getStatusIcon = (status) => {
     switch(status) {
-      case 'Completed': return <FiCheck className="text-green-500" />;
-      case 'Scheduled': return <FiClock className="text-blue-500" />;
-      case 'Overdue': return <FiX className="text-red-500" />;
+      case 'completed': return <FiCheck className="text-green-500" />;
+      case 'in_progress': return <FiClock className="text-yellow-500" />;
+      case 'planned': return <FiClock className="text-blue-500" />;
+      case 'cancelled': return <FiX className="text-red-500" />;
       default: return <FiClock className="text-gray-500" />;
     }
   };
 
   const getTypeColor = (type) => {
     switch(type) {
-      case 'Meeting': return 'bg-purple-100 text-purple-800';
-      case 'Call': return 'bg-blue-100 text-blue-800';
-      case 'Email': return 'bg-green-100 text-green-800';
-      case 'Task': return 'bg-yellow-100 text-yellow-800';
+      case 'meeting': return 'bg-purple-100 text-purple-800';
+      case 'call': return 'bg-blue-100 text-blue-800';
+      case 'email': return 'bg-green-100 text-green-800';
+      case 'task': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getFormattedDate = (date) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(date).toLocaleDateString('en-US', options);
+  };
+
+  const upperType = (type) => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  }
 
   return (
     <div className="space-y-6">
@@ -54,7 +84,9 @@ const ActivitiesContent = () => {
             </div>
             <div>
               <h3 className="font-semibold text-gray-800">Upcoming</h3>
-              <p className="text-2xl font-bold">2</p>
+              <p className="text-2xl font-bold">
+                {activities.filter(activity => activity.status === 'planned').length}
+              </p>
             </div>
           </div>
         </div>
@@ -65,7 +97,9 @@ const ActivitiesContent = () => {
             </div>
             <div>
               <h3 className="font-semibold text-gray-800">Completed</h3>
-              <p className="text-2xl font-bold">1</p>
+              <p className="text-2xl font-bold">
+                {activities.filter(activity => activity.status === 'completed').length}
+              </p>
             </div>
           </div>
         </div>
@@ -75,8 +109,10 @@ const ActivitiesContent = () => {
               <FiX size={20} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800">Overdue</h3>
-              <p className="text-2xl font-bold">1</p>
+              <h3 className="font-semibold text-gray-800">Cancelled</h3>
+              <p className="text-2xl font-bold">
+                {activities.filter(activity => activity.status === 'cancelled').length}
+              </p>
             </div>
           </div>
         </div>
@@ -104,12 +140,12 @@ const ActivitiesContent = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{activity.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{activity.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{activity.with}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{getFormattedDate(activity.startDate)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{activity.customer.firstName + ' ' + activity.customer.lastName}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(activity.status)}
-                      <span>{activity.status}</span>
+                      <span>{upperType(activity.status)}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

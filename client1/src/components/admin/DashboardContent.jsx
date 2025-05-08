@@ -1,8 +1,8 @@
 import { FiTrendingUp, FiUsers, FiDollarSign, FiActivity, FiCalendar, FiCheckCircle } from 'react-icons/fi';
 import { Bar, Pie } from 'react-chartjs-2';
-import { getAllCustomers, getAllDeals } from '../../api/admin';
+import { getAllCustomers, getAllDeals, getAllActivities, getAllInvoices } from '../../api/admin';
 import { useEffect, useState } from 'react';
-import ActivityList from './ActivityList'; // Import the ActivityList component
+import ActivityList from './ActivityList';
 
 const DashboardContent = () => {
   // Chart data
@@ -48,17 +48,27 @@ const DashboardContent = () => {
 
   const [customers, setCustomers] = useState([]);
   const [deals, setDeals] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const customers = await getAllCustomers();
         const deals = await getAllDeals();
+        const activities = await getAllActivities();
+        const invoices = await getAllInvoices();
         setCustomers(customers);
         setDeals(deals);
-        const totalRevenue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);        const newCustomers = customers.filter(customer => new Date(customer.createdAt) >= new Date(new Date() - 30 * 24 * 60 * 60 * 1000)).length;
-        const activeDeals = deals.filter(deal => (deal.stage === 'lead'|| 'qualified'||'proposal'||'negotiation')).length;
-        const todayActivities = customers.filter(customer => new Date(customer.updatedAt) >= new Date(new Date().setHours(0, 0, 0, 0))).length;
+        const sortedInvoices = invoices.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const sortedActivities = activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setActivities(sortedActivities);
+        setInvoices(sortedInvoices);
+        console.log(customers, deals);
+        const totalRevenue = deals.reduce((sum, deal) => sum + (Number(deal.value) || 0), 0);        
+        const newCustomers = customers.filter(customer => new Date(customer.createdAt) >= new Date(new Date() - 30 * 24 * 60 * 60 * 1000)).length;
+        const activeDeals = deals.filter(deal => (deal.stage !== 'closed_won' || deal.stage !== 'closed_lost' )).length;
+        const todayActivities = activities.filter(activity => new Date(activity.createdAt) >= new Date(new Date().setHours(0, 0, 0, 0))).length;
         const revenueChange = ((totalRevenue - stats.totalRevenue) / stats.totalRevenue) * 100 || 0;
         const customerChange = ((newCustomers - stats.newCustomers) / stats.newCustomers) * 100 || 0;
         const dealsChange = ((activeDeals - stats.activeDeals) / stats.activeDeals) * 100 || 0;
@@ -111,6 +121,13 @@ const DashboardContent = () => {
           change={`${stats.dealsChange.toFixed(2)}%`}
           isPositive={false} 
           icon={<FiTrendingUp className="text-yellow-500" size={24} />}
+        />
+        <StatCard
+          title="Today's Activities" 
+          value={`${stats.todayActivities}`} 
+          change={`${stats.activitiesChange.toFixed(2)}%`}
+          isPositive={true} 
+          icon={<FiActivity className="text-red-500" size={24} />}
         />
       </div>
 
@@ -174,31 +191,23 @@ const DashboardContent = () => {
           <ActivityList />
         </div>
 
-        {/* Upcoming Tasks */}
+        {/*List 3 Invoices */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Upcoming Tasks</h3>
-            <button className="text-sm text-indigo-600 hover:text-indigo-800">View All</button>
-          </div>
+          <h3>
+            <span className="text-lg font-semibold mb-4">Recent Invoices</span>
+          </h3>
           <div className="space-y-4">
-            <TaskItem 
-              title="Client meeting with Tech Solutions" 
-              due="Today, 2:00 PM" 
-              priority="high" 
-              assignedTo="You"
-            />
-            <TaskItem 
-              title="Send proposal to Acme Corp" 
-              due="Tomorrow" 
-              priority="medium" 
-              assignedTo="Sarah J."
-            />
-            <TaskItem 
-              title="Follow up with potential lead" 
-              due="Jun 15" 
-              priority="low" 
-              assignedTo="Michael B."
-            />
+            {
+              invoices.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  No invoices found. Create one to get started!
+                </div>
+              ) : (
+                invoices.slice(0, 3).map((invoice) => (
+                  <InvoiceItem key={invoice.id} invoice={invoice} />
+                ))
+              )
+            }
           </div>
         </div>
       </div>
@@ -226,27 +235,63 @@ const StatCard = ({ title, value, change, isPositive, icon }) => {
   );
 };
 
-const TaskItem = ({ title, due, priority, assignedTo }) => {
-  const priorityColors = {
-    high: 'bg-red-100 text-red-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    low: 'bg-green-100 text-green-800'
+const InvoiceItem = ({ invoice }) => {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'paid':
+        return 'bg-green-100 text-green-500';
+      case 'sent':
+        return 'bg-blue-100 text-blue-500';
+      case 'overdue':
+        return 'bg-yellow-100 text-yellow-500';
+      case 'cancelled':
+        return 'bg-red-100 text-red-500';
+      default:
+        return 'text-gray-500';
+    }
   };
+  const getFormattedDate = (date) => {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(date).toLocaleDateString(undefined, options);
+  }
+
+  const getCurrencySymbol = (currency) => {
+    switch (currency) {
+      case 'USD':
+        return '$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'VND': 
+        return '₫';
+      case 'JPY':
+        return '¥';
+      default:
+        return currency;
+    }
+  }
 
   return (
-    <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+    <div className="flex justify-between items-center border-b py-4">
       <div>
-        <p className="font-medium">{title}</p>
-        <p className="text-sm text-gray-500">Due: {due}</p>
+        <p className="text-sm font-medium">{invoice.invoiceNumber}</p>
+        <p className="text-xs text-gray-500">{invoice.deal.title}</p>
+        <p className="text-xs text-gray-500 font-semibold">{invoice.customer.firstName + ' ' + invoice.customer.lastName}</p>
       </div>
-      <div className="flex items-center space-x-3">
-        <span className={`text-xs px-2 py-1 rounded-full ${priorityColors[priority]}`}>
-          {priority}
-        </span>
-        <span className="text-sm text-gray-600">{assignedTo}</span>
+      <div className="flex items-center gap-2">
+        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${getStatusColor(invoice.status)}`}>{invoice.status}</span>
+      </div>
+      <div className="text-right">
+        <p className="text-sm font-semibold">
+          {getCurrencySymbol(invoice.currency)+parseInt(invoice.amount).toLocaleString()}</p>
+        <p className="text-xs text-gray-500">
+          Due: {getFormattedDate(invoice.dueDate)}
+        </p>
       </div>
     </div>
   );
-};
+}
+
 
 export default DashboardContent;

@@ -1,6 +1,7 @@
-import { FiUserPlus, FiSearch, FiFilter, FiDownload, FiUser } from 'react-icons/fi';
+import { FiUserPlus, FiSearch, FiFilter, FiDownload, FiUser, FiEye, FiX } from 'react-icons/fi';
 import { addNewCustomer, getAllCustomers, getSalesUsers, assignCustomerToSales } from '../../api/admin';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 
 const CustomersContent = () => {
     const [customers, setCustomers] = useState([]);
@@ -10,6 +11,16 @@ const CustomersContent = () => {
     const [showForm, setShowForm] = useState(false);
     const [assigningCustomer, setAssigningCustomer] = useState(null);
     const [selectedSales, setSelectedSales] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10); // Number of items per page
+    const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+    const [filters, setFilters] = useState({
+        assignedTo: '',
+        status: ''
+    });
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const [formData, setFormData] = useState({ 
         firstName: '', 
         lastName: '',
@@ -26,6 +37,51 @@ const CustomersContent = () => {
         status: 'customer',
         assignedTo: ''
     });
+    const navigate = useNavigate();
+
+    const handleDirectToCustomerDetail = (customerId) => {
+        navigate(`/admin/customers/${customerId}`);
+    }
+
+    const handleSearch = (e) => {
+        const keyword = e.target.value.toLowerCase();
+        setCustomerList(
+          customers.filter(c =>
+            `${c.firstName} ${c.lastName} ${c.email}`.toLowerCase().includes(keyword)
+        ))
+        setCurrentPage(1); // Reset to first page when searching
+      };
+
+      const applyFilters = (customerList) => {
+        return customerList.filter(customer => {
+          const matchesAssigned = !filters.assignedTo || customer.assignedTo === Number(filters.assignedTo);
+          const matchesStatus = !filters.status || customer.status === filters.status;
+          return matchesAssigned && matchesStatus;
+        });
+      };
+      
+      const filteredCustomers = applyFilters(customerList);
+      const currentItems = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
+      const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+      
+      // Add this function to handle filter changes
+      const handleFilterChange = (filterName, value) => {
+        setFilters(prev => ({
+          ...prev,
+          [filterName]: value
+        }));
+        setCurrentPage(1); // Reset to first page when filters change
+      };
+      
+      // Add this function to clear all filters
+      const clearFilters = () => {
+        setFilters({
+          assignedTo: '',
+          status: ''
+        });
+      };
+      
+      
 
     useEffect(() => {
         const fetchData = async () => {
@@ -98,28 +154,26 @@ const CustomersContent = () => {
     }
 
     const handleAssignCustomer = async () => {
-        if (!selectedSales || !assigningCustomer) return;
-        
         setLoading(true);
         try {
-            await assignCustomerToSales(assigningCustomer.id, Number(selectedSales));
-            console.log('assigned customer to sales:', assigningCustomer.id, Number(selectedSales));
-            // Update the local state to reflect the change
-            const updatedCustomers = customers.map(customer => 
-                customer.id === assigningCustomer.id 
-                    ? { ...customer, assignedTo: selectedSales } 
-                    : customer
-            );
-            setCustomers(updatedCustomers);
-            setCustomerList(updatedCustomers);
-            setAssigningCustomer(null);
-            setSelectedSales('');
+          await assignCustomerToSales(assigningCustomer.id, selectedSales === '' ? null : Number(selectedSales));
+          
+          const updatedCustomers = customers.map(customer => 
+            customer.id === assigningCustomer.id 
+              ? { ...customer, assignedTo: selectedSales === '' ? null : Number(selectedSales) } 
+              : customer
+          );
+          
+          setCustomers(updatedCustomers);
+          setCustomerList(updatedCustomers);
+          setAssigningCustomer(null);
+          setSelectedSales('');
         } catch (error) {
-            console.error('Error assigning customer:', error);
+          console.error('Error assigning customer:', error);
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    }
+      }
 
     const getSalesUserName = (salesId) => {
         if (!salesId) return 'Unassigned';
@@ -133,50 +187,49 @@ const CustomersContent = () => {
             {assigningCustomer && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                        <h3 className="text-lg font-semibold mb-4">
-                            Assign {assigningCustomer.firstName} {assigningCustomer.lastName} to Sales
-                        </h3>
-                        <div className="space-y-4">
-                            <div className="flex flex-col">
-                                <label className="text-sm font-medium text-gray-700 mb-1">Select Sales Person</label>
-                                <select
-                                    value={selectedSales}
-                                    onChange={(e) => setSelectedSales(e.target.value)}
-                                    className="mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                >
-                                    <option value="">Select Sales Person</option>
-                                    {salesUsers.map(user => (
-                                        
-                                        <option key={user.id} value={user.id}>
-                                            {user.firstName} {user.lastName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex justify-end space-x-3 pt-4">
-                                <button
-                                    onClick={() => {
-                                        setAssigningCustomer(null);
-                                        setSelectedSales('');
-                                    }}
-                                    className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleAssignCustomer}
-                                    disabled={!selectedSales || loading}
-                                    className={`px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 ${
-                                        !selectedSales || loading ? 'opacity-50 cursor-not-allowed' : ''
-                                    }`}
-                                >
-                                    {loading ? 'Assigning...' : 'Assign'}
-                                </button>
-                            </div>
+                    <h3 className="text-lg font-semibold mb-4">
+                        Assign {assigningCustomer.firstName} {assigningCustomer.lastName} to Sales
+                    </h3>
+                    <div className="space-y-4">
+                        <div className="flex flex-col">
+                        <label className="text-sm font-medium text-gray-700 mb-1">Select Sales Person</label>
+                        <select
+                            value={selectedSales}
+                            onChange={(e) => setSelectedSales(e.target.value)}
+                            className="mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                            <option value="">Unassign (Remove current assignment)</option>
+                            {salesUsers.map(user => (
+                            <option key={user.id} value={user.id}>
+                                {user.firstName} {user.lastName}
+                            </option>
+                            ))}
+                        </select>
+                        </div>
+                        <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                            onClick={() => {
+                            setAssigningCustomer(null);
+                            setSelectedSales('');
+                            }}
+                            className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleAssignCustomer}
+                            disabled={loading}
+                            className={`px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 ${
+                            loading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                        >
+                            {loading ? 'Processing...' : 'Save Changes'}
+                        </button>
                         </div>
                     </div>
+                    </div>
                 </div>
-            )}
+                )}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-2xl font-bold text-gray-800">Customers</h2>
                 <div className="flex gap-3 w-full md:w-auto">
@@ -188,19 +241,77 @@ const CustomersContent = () => {
                 <div className="relative flex-1 md:w-64">
                     <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
-                    type="text"
-                    placeholder="Search customers..."
-                    className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        type="text"
+                        placeholder="Search customers..."
+                        onChange={handleSearch}
+                        className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
-                </div>
-                <button className="flex items-center gap-2 border px-3 py-2 rounded-lg hover:bg-gray-50">
-                    <FiFilter /> Filter
-                </button>
+                    </div>
+                    <div className="relative">
+                        <button 
+                            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                            className="flex items-center gap-2 border px-3 py-2 rounded-lg hover:bg-gray-50"
+                        >
+                            <FiFilter /> Filter
+                            {(filters.assignedTo || filters.status) && (
+                            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-indigo-100 bg-indigo-600 rounded-full">
+                                !
+                            </span>
+                            )}
+                        </button>
+                        
+                        {showFilterDropdown && (
+                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 p-4">
+                            <div className="space-y-4">
+                                <div>
+                                <label className="block text-sm font-medium text-gray-700">Assigned To</label>
+                                <select
+                                    value={filters.assignedTo}
+                                    onChange={(e) => handleFilterChange('assignedTo', e.target.value)}
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                >
+                                    <option value="">All Assignments</option>
+                                    {salesUsers.map(user => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.firstName} {user.lastName}
+                                    </option>
+                                    ))}
+                                </select>
+                                </div>
+                                <div>
+                                <label className="block text-sm font-medium text-gray-700">Status</label>
+                                <select
+                                    value={filters.status}
+                                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                >
+                                    <option value="">All Statuses</option>
+                                    <option value="customer">Customer</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="lead">Lead</option>
+                                    <option value="prospect">Prospect</option>
+                                </select>
+                                </div>
+                                <div className="flex justify-between">
+                                <button
+                                    onClick={clearFilters}
+                                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                >
+                                    <FiX className="mr-1" /> Clear
+                                </button>
+                                <button
+                                    onClick={() => setShowFilterDropdown(false)}
+                                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                >
+                                    Apply
+                                </button>
+                                </div>
+                            </div>
+                            </div>
+                        )}
+                        </div>
                 </div>
             </div>
-
-            {/* Rest of the component remains the same until the form */}
-            {/* ... (previous code remains unchanged until the form) ... */}
 
             {showForm && (
                 <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -390,7 +501,7 @@ const CustomersContent = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {customers.map((customer) => (
+                            {currentItems.map((customer) => (
                                 <tr key={customer.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                                         {customer.firstName} {customer.lastName}
@@ -426,10 +537,14 @@ const CustomersContent = () => {
                                             }}
                                             className="flex items-center text-indigo-600 hover:text-indigo-900 mr-3"
                                         >
-                                            <FiUser className="mr-1" /> Assign
+                                        <FiUser className='mr-2' /> Assign
                                         </button>
-                                        <button className="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
-                                        <button className="text-gray-600 hover:text-gray-900">Edit</button>
+                                        <br />
+                                        <button 
+                                        onClick={() => handleDirectToCustomerDetail(customer.id)}
+                                        className="flex items-center text-indigo-600 hover:text-indigo-900 mr-3">
+                                        <FiEye className='mr-2'/>    View
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -438,13 +553,40 @@ const CustomersContent = () => {
                 </div>
                 <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                     <div className="text-sm text-gray-500">
-                        Showing <span className="font-medium">1</span> to <span className="font-medium">{customers.length}</span> of{' '}
-                        <span className="font-medium">{customers.length}</span> results
+                        Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
+                        <span className="font-medium">
+                        {Math.min(indexOfLastItem, filteredCustomers.length)}
+                        </span>{' '}
+                        of <span className="font-medium">{filteredCustomers.length}</span> results
+                        {(filters.assignedTo || filters.status) && (
+                        <span className="ml-2 text-xs text-gray-400">
+                            (filtered)
+                        </span>
+                        )}
                     </div>
-                    <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                    <div className="flex items-center gap-4">
+                        <button 
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+                        >
+                        Previous
+                        </button>
+                        <span className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                        </span>
+                        <button 
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className={`px-3 py-1 rounded-md ${currentPage === totalPages || totalPages === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+                        >
+                        Next
+                        </button>
+                        <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
                         <FiDownload /> Export
-                    </button>
-                </div>
+                        </button>
+                    </div>
+                    </div>
             </div>
         </div>
     );

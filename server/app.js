@@ -7,6 +7,7 @@ const customerRoutes = require('./routes/customerRoute');
 const userRoutes = require('./routes/userRoute');
 const dealRoutes = require('./routes/dealRoute');
 const noteRoutes = require('./routes/noteRoute');
+const invoiceRoutes = require('./routes/invoiceRoute');
 const activityRoutes = require('./routes/activityRoute');
 const db = require('./models/index');
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/deals', dealRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 app.get('/', (req, res) => {
   res.send('CRM Backend is running');

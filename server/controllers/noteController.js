@@ -2,6 +2,7 @@ const db = require('../models/index');
 const Note = db.Note;
 const Customer = db.Customer;
 const User = db.User;
+const Deal = db.Deal;
 
 const { Op } = require('sequelize');
 
@@ -11,6 +12,7 @@ exports.getAll = async (req, res) => {
       include: [
         { model: Customer, as: 'customer' },
         { model: User, as: 'user' },
+        { model: Deal, as: 'deal' },
       ],
     });
     res.json(notes);
