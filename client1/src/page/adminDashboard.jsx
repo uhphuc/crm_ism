@@ -130,7 +130,6 @@ const AdminDashboard = () => {
               {sidebarOpen && (
                 <div className="flex items-center">
                   <span className="text-sm font-medium">{user.firstName + " " + user.lastName}</span>
-                  <FiChevronDown className="ml-1" />
                 </div>
               )}
             </div>

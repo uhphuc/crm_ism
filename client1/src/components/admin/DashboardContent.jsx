@@ -3,27 +3,83 @@ import { Bar, Pie } from 'react-chartjs-2';
 import { getAllCustomers, getAllDeals, getAllActivities, getAllInvoices } from '../../api/admin';
 import { useEffect, useState } from 'react';
 import ActivityList from './ActivityList';
+import { data } from 'react-router';
 
 const DashboardContent = () => {
   // Chart data
+
+
+  const [dataDeal, setDataDeal] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getAllDeals();
+        const data = response.map((deal) => {
+          return {
+            stage: deal.stage,
+            value: deal.value,
+            createdAt: deal.createdAt,
+            updatedAt: deal.updatedAt,
+          };
+        });
+        setDataDeal(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+// 1. Nhóm dữ liệu theo tháng/năm và tính tổng giá trị
+  const groupedData = dataDeal.reduce((acc, deal) => {
+    const date = new Date(deal.createdAt);
+    const monthYear = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); // VD: "May 2025"
+    
+    if (!acc[monthYear]) {
+      acc[monthYear] = 0;
+    }
+    acc[monthYear] += Number(deal.value) || 0; // Xử lý trường hợp value không phải số
+    
+    return acc;
+  }, {});
+
+  // 2. Chuyển thành mảng các object { monthYear, value, date } để sắp xếp
+  const dataArray = Object.keys(groupedData).map(monthYear => ({
+    monthYear,
+    value: groupedData[monthYear],
+    date: new Date(monthYear) // Chuyển lại thành Date để so sánh
+  }));
+
+  // 3. Sắp xếp từ cũ đến mới (nếu muốn mới nhất lên đầu thì dùng b.date - a.date)
+  const sortedData = dataArray.sort((a, b) => a.date - b.date);
+
+  // 4. Lấy 6 tháng gần nhất (slice(-6) lấy 6 phần tử cuối)
+  const last6Months = sortedData.slice(-6);
+
+
   const salesData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Sales',
-        data: [12000, 19000, 15000, 20000, 18000, 24000],
-        backgroundColor: 'rgba(99, 102, 241, 0.6)',
-        borderColor: 'rgba(99, 102, 241, 1)',
-        borderWidth: 1,
-      },
-    ],
+    labels: last6Months.map(item => item.monthYear),
+    datasets: [{
+      label: 'Sales Performance',
+      data: last6Months.map(item => item.value),
+      backgroundColor: 'rgba(59, 130, 246, 0.7)',
+      borderColor: 'rgba(59, 130, 246, 1)',
+      borderWidth: 1
+    }]
   };
 
   const dealStageData = {
-    labels: ['Prospecting', 'Qualification', 'Proposal', 'Negotiation', 'Closed Won'],
+    labels: ['Lead', 'Qualified', 'Proposal', 'Negotiation', 'Closed Won'],
     datasets: [
       {
-        data: [12, 8, 6, 4, 3],
+        data : [
+          dataDeal.filter(deal => deal.stage === 'lead').length,
+          dataDeal.filter(deal => deal.stage === 'qualified').length,
+          dataDeal.filter(deal => deal.stage === 'proposal').length,
+          dataDeal.filter(deal => deal.stage === 'negotiation').length,
+          dataDeal.filter(deal => deal.stage === 'closed_won').length,
+        ],
         backgroundColor: [
           'rgba(59, 130, 246, 0.7)',
           'rgba(139, 92, 246, 0.7)',
@@ -64,7 +120,6 @@ const DashboardContent = () => {
         const sortedActivities = activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setActivities(sortedActivities);
         setInvoices(sortedInvoices);
-        console.log(customers, deals);
         const totalRevenue = deals.reduce((sum, deal) => sum + (Number(deal.value) || 0), 0);        
         const newCustomers = customers.filter(customer => new Date(customer.createdAt) >= new Date(new Date() - 30 * 24 * 60 * 60 * 1000)).length;
         const activeDeals = deals.filter(deal => (deal.stage !== 'closed_won' || deal.stage !== 'closed_lost' )).length;

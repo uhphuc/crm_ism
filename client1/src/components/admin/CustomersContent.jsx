@@ -54,11 +54,21 @@ const CustomersContent = () => {
 
       const applyFilters = (customerList) => {
         return customerList.filter(customer => {
-          const matchesAssigned = !filters.assignedTo || customer.assignedTo === Number(filters.assignedTo);
-          const matchesStatus = !filters.status || customer.status === filters.status;
-          return matchesAssigned && matchesStatus;
+        // Handle assignedTo filter
+            let matchesAssigned = true;
+            if (filters.assignedTo === "unassigned") {
+                matchesAssigned = customer.assignedTo === null;
+            } else if (filters.assignedTo) {
+                matchesAssigned = customer.assignedTo === Number(filters.assignedTo);
+            }
+            // If filters.assignedTo is empty (All), matchesAssigned remains true
+
+            // Handle status filter
+            const matchesStatus = !filters.status || customer.status === filters.status;
+            
+            return matchesAssigned && matchesStatus;
         });
-      };
+    };
       
       const filteredCustomers = applyFilters(customerList);
       const currentItems = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
@@ -198,7 +208,7 @@ const CustomersContent = () => {
                             onChange={(e) => setSelectedSales(e.target.value)}
                             className="mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         >
-                            <option value="">Unassign (Remove current assignment)</option>
+                            <option value="">Unassign (Remove current saler)</option>
                             {salesUsers.map(user => (
                             <option key={user.id} value={user.id}>
                                 {user.firstName} {user.lastName}
@@ -270,7 +280,8 @@ const CustomersContent = () => {
                                     onChange={(e) => handleFilterChange('assignedTo', e.target.value)}
                                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                                 >
-                                    <option value="">All Assignments</option>
+                                    <option value="">All</option>
+                                    <option value="unassigned">Unassigned</option>
                                     {salesUsers.map(user => (
                                     <option key={user.id} value={user.id}>
                                         {user.firstName} {user.lastName}
@@ -285,7 +296,6 @@ const CustomersContent = () => {
                                     onChange={(e) => handleFilterChange('status', e.target.value)}
                                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                                 >
-                                    <option value="">All Statuses</option>
                                     <option value="customer">Customer</option>
                                     <option value="inactive">Inactive</option>
                                     <option value="lead">Lead</option>
