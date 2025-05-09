@@ -110,3 +110,13 @@ export const getAllInvoices = async () => {
     throw error;
   }
 }
+
+export const updateInvoiceStatus = async (invoiceId, status) => {
+  try {
+    const response = await api.put(`/invoices/status/${invoiceId}`, { status });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating invoice status:', error);
+    throw error;
+  }
+}

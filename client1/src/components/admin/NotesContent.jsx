@@ -72,9 +72,6 @@ const NotesContent = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-800">Notes</h2>
         <div className="flex gap-3 w-full md:w-auto">
-          <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            <FiPlus /> Add Note
-          </button>
           <div className="relative flex-1 md:w-64">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -154,14 +151,6 @@ const NotesContent = () => {
                       {note.user.firstName + ' ' + note.user.lastName}
                     </span>
                   </h3>
-                  <div className="flex gap-2">
-                    <button className="text-gray-500 hover:text-indigo-600">
-                      <FiEdit2 size={18} />
-                    </button>
-                    <button className="text-gray-500 hover:text-red-600">
-                      <FiTrash2 size={18} />
-                    </button>
-                  </div>
                 </div>
                 <p>
                   <span className='italic'>Make a note for </span>

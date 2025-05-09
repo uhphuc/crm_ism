@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { updateDealStage, getDealByUserId } from '../../api/sales';
 import { useAuth } from '../../hook/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const DealList = ({ deals, setDeals, setShowDealNotes, setSelectedDeal }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -75,18 +77,22 @@ const DealList = ({ deals, setDeals, setShowDealNotes, setSelectedDeal }) => {
                     ${deal.value?.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <select
-                      value={deal.stage}
-                      onChange={(e) => handleUpdateDealStage(deal.id, e.target.value)}
-                      className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    >
-                      <option value="lead">Lead</option>
-                      <option value="qualified">Qualified</option>
-                      <option value="proposal">Proposal</option>
-                      <option value="negotiation">Negotiation</option>
-                      <option value="closed_won">Closed Won</option>
-                      <option value="closed_lost">Closed Lost</option>
-                    </select>
+                    {/* prevent change the value when stage is closed */}
+                    {deal.stage !== 'closed_won' && deal.stage !== 'closed_lost' ? (
+                      <select
+                        value={deal.stage}
+                        onChange={(e) => handleUpdateDealStage(deal.id, e.target.value)}
+                        className="bg-gray-50 border border-gray-300 rounded-md p-1 text-sm"
+                      >
+                        {['lead', 'qualified', 'proposal', 'negotiation'].map((stage) => (
+                          <option key={stage} value={stage}>
+                            {stage.replace('_', ' ')}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-sm font-semibold text-gray-500">{deal.stage.replace('_', ' ')}</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -107,7 +113,9 @@ const DealList = ({ deals, setDeals, setShowDealNotes, setSelectedDeal }) => {
                     >
                       Notes
                     </button>
-                    <button className="text-gray-600 hover:text-gray-900">View</button>
+                    <button
+                      onClick={() => navigate(`/deals/${deal.id}`)}
+                    className="text-gray-600 hover:text-gray-900">View</button>
                   </td>
                 </tr>
               ))}
@@ -118,7 +126,7 @@ const DealList = ({ deals, setDeals, setShowDealNotes, setSelectedDeal }) => {
 
       {/* Deal Stage Summary */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {['lead', 'qualified', 'proposal', 'negotiation', 'closed_won'].map((stage) => (
+        {['lead', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost'].map((stage) => (
           <div key={stage} className="bg-white shadow rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-900 capitalize">{stage.replace('_', ' ')}</h3>
             <p className="text-2xl font-semibold mt-1">

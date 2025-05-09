@@ -2,6 +2,7 @@ const db = require('../models');
 const Customer = db.Customer;
 const User = db.User;
 const Deal = db.Deal;
+const Invoice = db.Invoice;
 const { Op, where } = require('sequelize');
 
 exports.getAll = async (req, res) => {
@@ -15,7 +16,9 @@ exports.getAll = async (req, res) => {
 
 exports.getOne = async (req, res) => {
   try {
-    const customer = await Customer.findByPk(req.params.id);
+    const customer = await Customer.findByPk(req.params.id, {
+      include: [{ model: Invoice, as: 'invoices' }, { model: Deal, as: 'deals' }], // include the user assigned to the customer
+    });
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
     res.json(customer);
   } catch (err) {

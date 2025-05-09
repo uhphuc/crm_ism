@@ -1,6 +1,7 @@
-import { FiPlus, FiTrendingUp, FiClock, FiCheck, FiX, FiFileText, FiFilter, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiPlus, FiTrendingUp, FiClock, FiCheck, FiX, FiFileText, FiFilter, FiChevronUp, FiChevronDown, FiArrowUpCircle, FiCloud } from 'react-icons/fi';
 import { getAllDeals, createInvoice } from '../../api/admin';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const DealsContent = () => {
   const [deals, setDeals] = useState([]);
@@ -9,6 +10,7 @@ const DealsContent = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [stageFilter, setStageFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     status: 'sent',
     amount: 0,
@@ -19,6 +21,9 @@ const DealsContent = () => {
   });
   const [showInvoiceVerify, setShowInvoiceVerify] = useState(false);
 
+  const handleNavigateTo = (path) => {
+    navigate(path);
+  };
 
   useEffect(() => {
     const fetchDeals = async () => {
@@ -52,18 +57,20 @@ const DealsContent = () => {
 
   const getStageColor = (stage) => {
     switch(stage) {
+      case 'lead': return 'bg-pink-100 text-pink-800';
       case 'proposal': return 'bg-blue-100 text-blue-800';
       case 'negotiation': return 'bg-purple-100 text-purple-800';
       case 'qualified': return 'bg-yellow-100 text-yellow-800';
       case 'closed_won': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-red-100 text-gray-800';
     }
   };
 
   const getStageIcon = (stage) => {
     switch(stage) {
+      case 'lead': return <FiArrowUpCircle className="text-pink-500" />;
       case 'proposal': return <FiFileText className="text-blue-500" />;
-      case 'negotiation': return <FiCheck className="text-purple-500" />;
+      case 'negotiation': return <FiCloud className="text-purple-500" />;
       case 'qualified': return <FiClock className="text-yellow-500" />;
       case 'closed_won': return <FiCheck className="text-green-500" />;
       default: return <FiX className="text-gray-500" />;
@@ -276,7 +283,9 @@ const DealsContent = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">{deal.probability + '%'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">{getFormattedDate(deal.expectedCloseDate)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
+                    <button 
+                    onClick={() => handleNavigateTo(`/admin/deals/${deal.id}`)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
                     {deal.invoices.length === 0 ? (
                       <button
                       onClick={async () => {

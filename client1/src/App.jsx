@@ -7,6 +7,9 @@ import HomePage from './page/homePage.jsx';
 import AdminDashboard from './page/adminDashboard.jsx';
 import SalesDashboard from './page/salesDashboard.jsx';
 import CustomerDetail from './page/customerDetail.jsx';
+import DealDetailPage from './page/dealDetail.jsx';
+import InvoiceDetailPage from './page/invoiceDetail.jsx';
+import ActivityDetail from './page/activityDetail.jsx';
 import Register from './page/signUp.jsx';
 import ProtectedRoute from './routes/protectedRoute.jsx';
 
@@ -27,6 +30,8 @@ function App() {
         <Route path="/" element={<ProtectedRoute isAllowed={isSalesOrSupport}><MainLayout /></ProtectedRoute>}>
           <Route index element={<SalesDashboard/>} />
           <Route path="customers/:id" element={<CustomerDetail />} />
+          <Route path="deals/:id" element={<DealDetailPage />} />
+          <Route path="activities/:id" element={<ActivityDetail />} />
           {/* Add more routes here */}
         </Route>
 
@@ -38,6 +43,9 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute isAllowed={isAdmin}><MainLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="customers/:id" element={<CustomerDetail />} />
+          <Route path="deals/:id" element={<DealDetailPage />} />
+          <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+          <Route path="activities/:id" element={<ActivityDetail />} />
           {/* Add more routes here */}
         </Route>
 

@@ -121,3 +121,14 @@ export const createActivity = async (activityData, userId) => {
     throw error;
   }
 }
+
+export const updateActivityStatus = async (activityId, status) => 
+{
+  try {
+    const response = await api.put(`/activities/status/${activityId}`, { status });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating activity status:', error);
+    throw error;
+  }
+}

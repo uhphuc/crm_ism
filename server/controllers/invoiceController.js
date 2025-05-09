@@ -24,7 +24,10 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const invoice = await Invoice.findByPk(req.params.id, {
-      include: [{ model: Deal, as: 'deal' }],
+      include: [
+        { model: Deal, as: 'deal' },
+        { model: Customer, as: 'customer'},
+      ],
     });
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
     res.json(invoice);
@@ -139,6 +142,40 @@ exports.getInvoicesByCustomerId = async (req, res) => {
       include: [{ model: Customer, as: 'customer' }],
     });
     res.json(invoices);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+// Update invoice status and update the deal stage 
+exports.updateInvoiceStatus = async (req, res) => {
+  try {
+    const invoiceId = req.params.invoiceId;
+    const { status } = req.body;
+    const invoice = await Invoice.findByPk(invoiceId);
+    if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+    
+    const paymentDate = new Date(); // Get the current date and time
+    
+    // Update the invoice status
+    await invoice.update({ status, paymentDate });
+
+    // Update the deal stage based on the new invoice status
+    const deal = await Deal.findByPk(invoice.dealId);
+    if (deal) {
+      let newStage;
+      if (status === 'paid') {
+        newStage = 'closed_won';
+      } else if (status === 'cancelled' ) {
+        newStage = 'closed_lost';
+      } else {
+        newStage = 'unchanged';
+      }
+      if (newStage !== 'unchanged') {
+        await deal.update({ stage: newStage });
+      }
+    }
+
+    res.json(invoice);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

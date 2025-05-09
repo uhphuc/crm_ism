@@ -164,7 +164,10 @@ exports.getByUserId = async (req, res) => {
     const user_id = req.params.userId;
     const activities = await Activity.findAll({
       where: { userId: user_id },
-      include: [{ model: User, as: 'user' }],
+      include: [
+        { model: User, as: 'user' },
+        { model: Customer, as: 'customer' },
+      ],
     });
     res.json(activities);
   } catch (err) {
@@ -197,3 +200,16 @@ exports.getByType = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.updateActivityStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const activity = await Activity.findByPk(id);
+    if (!activity) return res.status(404).json({ error: 'Activity not found' });
+    await activity.update({ status });
+    res.json(activity);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

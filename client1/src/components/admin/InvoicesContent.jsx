@@ -1,12 +1,14 @@
-import { FiFileText, FiDownload, FiPrinter, FiMail, FiSearch, FiFilter, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiFileText, FiDownload, FiPrinter, FiMail, FiSearch, FiFilter, FiChevronUp, FiChevronDown, FiEye } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
-import { getAllInvoices } from '../../api/admin';
+import { getAllInvoices, updateInvoiceStatus } from '../../api/admin';
+import { useNavigate } from 'react-router';
 
 const InvoicesContent = () => {
   const [invoices, setInvoices] = useState([]);
   const [originalInvoices, setOriginalInvoices] = useState([]); // Store original data
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Sorting
   const [sortConfig, setSortConfig] = useState({ key: 'issueDate', direction: 'desc' });
@@ -255,20 +257,35 @@ const InvoicesContent = () => {
                       ${invoice.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(invoice.status)}`}>
-                        {invoice.status}
-                      </span>
+                      {/* can change the status to db with the enum ('draft','sent','paid','overdue','cancelled') here and prevent the change if the status is paid */}
+                      {
+                        invoice.status !== 'paid' ? (
+                          <select
+                            value={invoice.status}
+                            onChange={(e) => updateInvoiceStatus(invoice.id, e.target.value)}
+                            className={`px-2 py-1 rounded-full ${getStatusColor(invoice.status)}`}
+                          >
+                            {['draft', 'sent', 'paid', 'overdue', 'cancelled'].map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full ${getStatusColor(invoice.status)}`}>
+                            {invoice.status}
+                          </span>
+                        )
+                      }
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-2">
-                        <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
-                          <FiDownload size={16} />
-                        </button>
-                        <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
-                          <FiPrinter size={16} />
-                        </button>
-                        <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
-                          <FiMail size={16} />
+                      <div className="flex justify-center gap-2">
+                        <button
+                        onClick={
+                          () => navigate(`/admin/invoices/${invoice.id}`)
+                        }
+                        className='text-gray-500 hover:text-gray-700'>
+                          <FiEye className="h-5 w-5" />
                         </button>
                       </div>
                     </td>

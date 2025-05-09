@@ -135,7 +135,7 @@ exports.getDealById = async (req, res) => {
         const deal = await Deal.findByPk(id, {
             include: [
                 { model: Customer, as: 'customer' },
-                { model: User, as: 'salesRep' },
+                { model: User, as: 'user' },
             ],
         });
 

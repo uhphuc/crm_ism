@@ -1,6 +1,8 @@
 import { FiUser, FiPlus, FiPauseCircle } from 'react-icons/fi';
+import { useNavigate } from 'react-router';
 
 const CustomerList = ({ customers, loading, setShowCustomerForm, setSelectedCustomer, setShowDealForm }) => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -72,7 +74,7 @@ const CustomerList = ({ customers, loading, setShowCustomerForm, setSelectedCust
                     Add Deal
                   </button>
                   <button 
-                    onClick={() => setSelectedCustomer(customer)}
+                    onClick={() => navigate(`/customers/${customer.id}`)} 
                     className="text-gray-600 hover:text-gray-900"
                   >
                     View

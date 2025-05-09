@@ -20,6 +20,7 @@ router.get('/user/:userId', activityController.getByUserId);
 router.get('/type/:type', activityController.getByType);
 // Get activities by status
 router.get('/status/:status', activityController.getByStatus);
+router.put('/status/:id', activityController.updateActivityStatus);
 
 
 module.exports = router;

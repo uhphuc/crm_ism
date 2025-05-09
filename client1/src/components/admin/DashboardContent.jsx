@@ -3,13 +3,14 @@ import { Bar, Pie } from 'react-chartjs-2';
 import { getAllCustomers, getAllDeals, getAllActivities, getAllInvoices } from '../../api/admin';
 import { useEffect, useState } from 'react';
 import ActivityList from './ActivityList';
-import { data } from 'react-router';
+import { useAuth } from '../../hook/useAuth';
 
 const DashboardContent = () => {
   // Chart data
 
 
   const [dataDeal, setDataDeal] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,7 +32,6 @@ const DashboardContent = () => {
     fetchData();
   }, []);
 
-// 1. Nhóm dữ liệu theo tháng/năm và tính tổng giá trị
   const groupedData = dataDeal.reduce((acc, deal) => {
     const date = new Date(deal.createdAt);
     const monthYear = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); // VD: "May 2025"
@@ -39,24 +39,20 @@ const DashboardContent = () => {
     if (!acc[monthYear]) {
       acc[monthYear] = 0;
     }
-    acc[monthYear] += Number(deal.value) || 0; // Xử lý trường hợp value không phải số
+    acc[monthYear] += Number(deal.value) || 0; 
     
     return acc;
   }, {});
 
-  // 2. Chuyển thành mảng các object { monthYear, value, date } để sắp xếp
+
   const dataArray = Object.keys(groupedData).map(monthYear => ({
     monthYear,
     value: groupedData[monthYear],
-    date: new Date(monthYear) // Chuyển lại thành Date để so sánh
+    date: new Date(monthYear) 
   }));
 
-  // 3. Sắp xếp từ cũ đến mới (nếu muốn mới nhất lên đầu thì dùng b.date - a.date)
   const sortedData = dataArray.sort((a, b) => a.date - b.date);
-
-  // 4. Lấy 6 tháng gần nhất (slice(-6) lấy 6 phần tử cuối)
   const last6Months = sortedData.slice(-6);
-
 
   const salesData = {
     labels: last6Months.map(item => item.monthYear),
@@ -120,9 +116,17 @@ const DashboardContent = () => {
         const sortedActivities = activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setActivities(sortedActivities);
         setInvoices(sortedInvoices);
-        const totalRevenue = deals.reduce((sum, deal) => sum + (Number(deal.value) || 0), 0);        
+        // Calculate total revenue, that is the sum of all invoices has the status "paid"
+        const totalRevenue = invoices.reduce((acc, invoice) => {
+          if (invoice.status === 'paid') {
+            return acc + Number(invoice.amount) || 0;
+          }
+          return acc;
+        }, 0);       
         const newCustomers = customers.filter(customer => new Date(customer.createdAt) >= new Date(new Date() - 30 * 24 * 60 * 60 * 1000)).length;
-        const activeDeals = deals.filter(deal => (deal.stage !== 'closed_won' || deal.stage !== 'closed_lost' )).length;
+        const activeDeals = deals.filter(deal => 
+        !['closed_won', 'closed_lost'].includes(deal.stage)
+        ).length;
         const todayActivities = activities.filter(activity => new Date(activity.createdAt) >= new Date(new Date().setHours(0, 0, 0, 0))).length;
         const revenueChange = ((totalRevenue - stats.totalRevenue) / stats.totalRevenue) * 100 || 0;
         const customerChange = ((newCustomers - stats.newCustomers) / stats.newCustomers) * 100 || 0;
@@ -149,7 +153,7 @@ const DashboardContent = () => {
     <div className="space-y-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold">Welcome back, Admin!</h1>
+        <h1 className="text-2xl font-bold">Welcome back, {user.firstName}</h1>
         <p className="opacity-90">Here's what's happening with your CRM today</p>
       </div>
 
@@ -158,30 +162,22 @@ const DashboardContent = () => {
         <StatCard
           title="Total Revenue"
           value={`$${parseInt(stats.totalRevenue).toLocaleString()}`}
-          change={`${stats.revenueChange.toFixed(2)}%`}
-          isPositive={stats.revenueChange > 0}
           icon={<FiDollarSign className="text-green-500" size={24} />}
         />
 
         <StatCard 
           title="New Customers" 
           value={`${stats.newCustomers}`}
-          change={`${stats.customerChange.toFixed(2)}%`}
-          isPositive={true} 
           icon={<FiUsers className="text-blue-500" size={24} />}
         />
         <StatCard 
           title="Active Deals" 
           value={`${stats.activeDeals}`} 
-          change={`${stats.dealsChange.toFixed(2)}%`}
-          isPositive={false} 
           icon={<FiTrendingUp className="text-yellow-500" size={24} />}
         />
         <StatCard
           title="Today's Activities" 
           value={`${stats.todayActivities}`} 
-          change={`${stats.activitiesChange.toFixed(2)}%`}
-          isPositive={true} 
           icon={<FiActivity className="text-red-500" size={24} />}
         />
       </div>
@@ -192,11 +188,6 @@ const DashboardContent = () => {
         <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Sales Performance</h3>
-            <select className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option>Last 6 Months</option>
-              <option>Last 3 Months</option>
-              <option>This Year</option>
-            </select>
           </div>
           <div className="h-64">
             <Bar 
@@ -271,16 +262,13 @@ const DashboardContent = () => {
 };
 
 // Sub-components (keep these the same as before)
-const StatCard = ({ title, value, change, isPositive, icon }) => {
+const StatCard = ({ title, value, icon }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <p className="text-2xl font-semibold mt-1">{value}</p>
-          <p className={`text-sm mt-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-            {change} {isPositive ? '↑' : '↓'}
-          </p>
         </div>
         <div className="h-12 w-12 rounded-full bg-opacity-20 flex items-center justify-center">
           {icon}

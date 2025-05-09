@@ -1,6 +1,7 @@
 import { FiCalendar, FiPlus, FiCheck, FiClock, FiX, FiSearch } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
 import { getAllActivities } from '../../api/admin';
+import { useNavigate } from 'react-router';
 
 const ActivitiesContent = () => {
 
@@ -8,6 +9,7 @@ const ActivitiesContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'today', 'upcoming'
+  const navigate = useNavigate();
 
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   
@@ -26,7 +28,9 @@ const ActivitiesContent = () => {
     fetchActivities();
   }, [filter]);
 
-  
+  const handleNavigate = (activityId) => {
+    navigate(`/admin/activities/${activityId}`);
+  };
 
   const getStatusIcon = (status) => {
     switch(status) {
@@ -62,9 +66,6 @@ const ActivitiesContent = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-800">Activities</h2>
         <div className="flex gap-3 w-full md:w-auto">
-          <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            <FiPlus /> Add Activity
-          </button>
           <div className="relative flex-1 md:w-64">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -145,12 +146,17 @@ const ActivitiesContent = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(activity.status)}
-                      <span>{upperType(activity.status)}</span>
+                      <span
+                      className='text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800'>
+                      {upperType(activity.status)}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
-                    <button className="text-gray-600 hover:text-gray-900">Edit</button>
+                    <button
+                    onClick={
+                      () => handleNavigate(activity.id)
+                    }
+                    className="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
                   </td>
                 </tr>
               ))}

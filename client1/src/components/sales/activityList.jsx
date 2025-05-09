@@ -1,7 +1,7 @@
 import { FiPlus, FiCalendar, FiFileText, FiPhone, FiMail, FiCheckCircle } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
-import { getActivitiesByUserId, createActivity } from '../../api/sales';
-import ActivityModal from './ActivityModal'; // You'll need to create this modal component
+import { getActivitiesByUserId, createActivity, updateActivityStatus } from '../../api/sales';
+import ActivityModal from './activityModal';
 import { useAuth } from '../../hook/useAuth';
 
 const ActivityList = () => {
@@ -12,13 +12,13 @@ const ActivityList = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchActivities();
-  }, []);
+    fetchActivities(user.id);
+  }, [user.id]);
 
-  const fetchActivities = async () => {
+  const fetchActivities = async (userId) => {
     try {
       setIsLoading(true);
-      const response = await getActivitiesByUserId(user.id);
+      const response = await getActivitiesByUserId(userId);
       setActivities(response);
       setIsLoading(false);
     } catch (err) {
@@ -39,6 +39,16 @@ const ActivityList = () => {
       setIsLoading(false);
     }
   };
+
+  const handleStatusChange = async (activityId, newStatus) => {
+    try {
+      await updateActivityStatus(activityId, newStatus);
+      await fetchActivities(user.id); // Refresh the activity list
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
 
   const getActivityIcon = (type) => {
     switch (type) {
@@ -113,6 +123,21 @@ const ActivityList = () => {
                     <p className="text-xs text-gray-500 mt-1">{activity.description}</p>
                   )}
                 </div>
+                {
+                  activity.status && (
+                    <select
+                      value={activity.status}
+                      onChange={(e) => handleStatusChange(activity.id, e.target.value)}
+                      className="ml-3 bg-gray-50 border border-gray-300 rounded-md p-1 text-sm"
+                    >
+                      {['planned', 'completed', 'cancelled', 'in_progress'].map((status) => (
+                        <option key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  ) 
+                }
               </div>
             ))
           )}
