@@ -16,7 +16,7 @@ cd crm_ism
 
 ### 2. Install dependencies
 
-Navigate to the `server` and `client` directories and install the required packages:
+Navigate to the `server` and `client1` directories and install the required packages:
 
 ```bash
 # For the server
@@ -60,7 +60,7 @@ JWT_SECRET='your_jwt_secret'
 
 > **Note:** Never push the `.env` file to version control. Ensure it is added to `.gitignore`.
 
-### 5. Initialize default roles
+### 5. Initialize the tables in the database and create a admin account
 
 Run the `init.js` script to initiate the database and create user admin:
 
@@ -93,11 +93,12 @@ npm run dev
 - Once the server is running, you can access the API at `http://localhost:3000`.
 - The client application will be available at `http://localhost:5173`.
 
-### Testing the Manager Account
+### Testing the Admin Account
 
 - Use the following credentials to log in as the manager:
   - **Email:** `admin@example.com`
   - **Password:** `admin123`
+- In this account you can create a sales/manager/support account for this project
 
 ## License
 
