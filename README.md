@@ -139,6 +139,34 @@ npm install vite
   - **Password:** `admin123`
 - In this account you can create a sales/manager/support account for this project
 
+### Run the sample database to get a better visual of the project
+
+- Open the `sample_data/sample_data.sql` (copy or take)
+- Then paste/take this file into your **MySQL Workbench**
+- Query the script `sample_data/sample_data.sql` --> Ctrl + Shift + Enter
+
+### Account information
+
+- All the account for sales/support/manager is automatically set the password is `12345678`
+- In the sample data we have:
+```bash
+admin@example.com --- admin123
+
+manager1@gmail.com --- 12345678
+manager2@gmail.com --- 12345678
+manager3@gmail.com --- 12345678
+
+sale1@gmail.com --- 12345678
+sale2@gmail.com --- 12345678
+sale3@gmail.com --- 12345678
+sale4@gmail.com --- 12345678
+sale5@gmail.com --- 12345678
+sale6@gmail.com --- 12345678
+sale7@gmail.com --- 12345678
+sale8@gmail.com --- 12345678
+
+```
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
