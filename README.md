@@ -87,6 +87,11 @@ cd ../client1
 npm run dev
 ```
 
+Install Vite for the client in the `client1`
+
+```bash
+npm install vite
+```
 
 ## Usage
 
