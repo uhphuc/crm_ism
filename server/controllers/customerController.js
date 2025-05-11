@@ -3,11 +3,21 @@ const Customer = db.Customer;
 const User = db.User;
 const Deal = db.Deal;
 const Invoice = db.Invoice;
+const Activity = db.Activity;
 const { Op, where } = require('sequelize');
 
 exports.getAll = async (req, res) => {
   try {
-    const customers = await Customer.findAll();
+    const customers = await Customer.findAll(
+      {
+        include: [
+          { model: Invoice, as: 'invoices' },
+          { model: Deal, as: 'deals' },
+          { model: User, as: 'user' }, // include the user assigned to the customer
+          { model: Activity, as: 'activities' }, // include activities related to the customer
+        ],
+      }
+    );
     res.json(customers);
   } catch (err) {
     res.status(500).json({ error: err.message });

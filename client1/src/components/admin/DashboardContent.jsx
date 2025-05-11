@@ -149,6 +149,78 @@ const DashboardContent = () => {
     fetchData();
   }, []);
 
+  const customerSourceData = {
+    // get 5 and other
+    labels: [
+      'Trade Show',
+      'Website',
+      'Social Media',
+      'Referral',
+      'Email Campaign',
+      'Other'
+    ],
+    datasets: [
+      {
+        label:'',
+        data: [
+          customers.filter(customer => customer.source === 'Trade Show').length,
+          customers.filter(customer => customer.source === 'Website').length,
+          customers.filter(customer => customer.source === 'Social Media').length,
+          customers.filter(customer => customer.source === 'Referral').length,
+          customers.filter(customer => customer.source === 'Email Campaign').length,
+          customers.filter(customer => customer.source !== 'Trade Show' && customer.source !== 'Website' && customer.source !== 'Social Media' && customer.source !== 'Referral' && customer.source !== 'Email Campaign').length,
+        ],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(234, 179, 8, 0.7)',
+          'rgba(249, 115, 22, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(75, 85, 99, 0.7)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  }
+
+  // find the top 5 states that have the customer have the most deals
+  const top5StatesDeals = customers.reduce((acc, customer) => {
+    const state = customer.state;
+    const deals = customer.deals;
+    if (!acc[state]) {
+      acc[state] = 0;
+    }
+    acc[state] += deals.length;
+    return acc;
+  }, {});
+  
+  const top5StatesDealsArray = Object.keys(top5StatesDeals).map(state => ({
+    state,
+    deals,
+    count: top5StatesDeals[state]
+  })).map(item => ({
+    state: item.state,
+    deals: item.count,
+    count: item.count
+  }));
+
+  const sortedTop5StatesDeals = top5StatesDealsArray.sort((a, b) => b.deals - a.deals).slice(0, 5);
+  const top5StatesDealsData = {
+    labels: sortedTop5StatesDeals.map(item => item.state),
+    datasets: [{
+      label: 'Deals by State',
+      data: sortedTop5StatesDeals.map(item => item.deals),
+      backgroundColor: [
+        'rgba(59, 130, 246, 0.7)',
+        'rgba(139, 92, 246, 0.7)',
+        'rgba(234, 179, 8, 0.7)',
+        'rgba(249, 115, 22, 0.7)',
+        'rgba(16, 185, 129, 0.7)',
+      ],
+      borderWidth: 1
+    }]
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
@@ -230,6 +302,55 @@ const DashboardContent = () => {
         </div>
       </div>
 
+      {/* Customer Analysis Container ratio 7 3 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Customer analysis for marketing */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">Customer Source</h3>
+        <div className="h-64">
+          <Pie
+            data={customerSourceData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'right',
+                }
+              }
+            }}
+          />
+        </div>
+      </div>
+      {/* List top 5 states that have the customer have the most deals */}
+      <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">Top 5 States with Most Deals</h3>
+        <div className="h-64">
+          <Bar
+            data={top5StatesDealsData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function(value) {
+                      return value.toLocaleString();
+                    }
+                  }
+                }
+              },
+              plugins: {
+                legend: {
+                  display: false,
+                }
+              }
+            }}
+          />
+        </div>
+      </div>
+      </div>
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Activities - Replaced with ActivityList */}
