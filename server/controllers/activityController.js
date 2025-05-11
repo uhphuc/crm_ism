@@ -39,7 +39,10 @@ exports.getOne = async (req, res) => {
 exports.create = async (req, res) => {
   const { userId } = req.params;
   try {
-    const { title, type, description, startDate, endDate, status, customerId, dealId } = req.body;
+    const { title, type, description, startDate, endDate, status, dealId } = req.body;
+    // find the customerId from the dealId
+    const deal = await db.Deal.findOne({ where: { id: dealId } });
+    const customerId = deal ? deal.customerId : null;
     if (!customerId || customerId === '') {
       const numericDealId = Number(dealId);
       const activity = await Activity.create({

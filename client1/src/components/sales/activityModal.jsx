@@ -112,21 +112,7 @@ const ActivityModal = ({ isOpen, onClose, onSubmit }) => {
 
             {/* optional label */}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="customerId"
-                  value={formData.customerId}
-                  onChange={handleChange}
-                  placeholder="Customer ID"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <FiUser className="absolute left-3 top-3 text-gray-400" />
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Deal ID </label>
               <div className="relative">
