@@ -55,6 +55,40 @@ DB_PASSWORD=<your password>
 DB_NAME=crm_dev
 JWT_SECRET='your_jwt_secret'
 ```
+And in the file `server/config/database.js`
+
+```js
+module.exports = {
+  development: {
+    username: <your_username>, // in your database
+    password: <your_password>, // in your database
+    database: 'crm_dev', // --> this is the name of our database that we set up before
+    host: 'localhost',
+    dialect: 'mysql'
+  },
+  test: {
+    username: <your_username>, // in your database
+    password: <your_password>, // in your database
+    database: 'crm_test', // --> this is the name of our database that we set up before
+    host: 'localhost',
+    dialect: 'mysql'
+  },
+  production: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: 'mysql',
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
+  }
+};
+```
 
 > **Note:** Replace `your_secret_here` with your own secure random strings.
 
