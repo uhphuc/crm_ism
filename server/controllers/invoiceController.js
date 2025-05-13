@@ -154,11 +154,12 @@ exports.updateInvoiceStatus = async (req, res) => {
     const invoice = await Invoice.findByPk(invoiceId);
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
     
-    const paymentDate = new Date(); // Get the current date and time
+    if (status === 'paid') {
+      // Set the payment date to the current date
+      const paymentDate = new Date();
+      await invoice.update({ status, paymentDate });
+    }
     
-    // Update the invoice status
-    await invoice.update({ status, paymentDate });
-
     // Update the deal stage based on the new invoice status
     const deal = await Deal.findByPk(invoice.dealId);
     if (deal) {

@@ -2,6 +2,7 @@ import { FiPlus, FiCalendar, FiFileText, FiPhone, FiMail, FiCheckCircle, FiEdit2
 import { useState, useEffect, use } from 'react';
 import axios from 'axios';
 import { getAllActivities } from '../../api/admin';
+import { set } from 'date-fns';
 // import ActivityModal from './ActivityModal';
 
 const ActivityList = () => {
@@ -20,7 +21,9 @@ const ActivityList = () => {
     try {
         setIsLoading(true);
         const response = await getAllActivities(filter);
-        setActivities(response);
+        // get 10 most recent activities
+        const recentActivities = response.slice(0, 5);
+        setActivities(recentActivities);
         setIsLoading(false);
     } catch (err) {
         setError(err.message);
@@ -35,27 +38,6 @@ const ActivityList = () => {
     };
 
 
-  const handleCreateActivity = async (activityData) => {
-    try {
-      await axios.post('/api/activities', activityData);
-      fetchActivities();
-      setIsModalOpen(false);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleUpdateActivity = async (id, activityData) => {
-    try {
-      await axios.put(`/api/activities/${id}`, activityData);
-      fetchActivities();
-      setIsModalOpen(false);
-      setCurrentActivity(null);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   const handleDeleteActivity = async (id) => {
     try {
       await axios.delete(`/api/activities/${id}`);
@@ -64,6 +46,8 @@ const ActivityList = () => {
       setError(err.message);
     }
   };
+
+
 
   const getActivityIcon = (type) => {
     switch (type) {

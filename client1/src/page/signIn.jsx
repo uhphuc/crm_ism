@@ -19,6 +19,9 @@ const SignIn = () => {
       if (user.role === 'sales' || user.role === 'support') {
         navigate('/')
       }
+      if (user.role === 'customer') {
+        navigate('/customer')
+      }
     }
   }, [user, navigate])
 

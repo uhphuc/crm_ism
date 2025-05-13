@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { getActivityById  } from '../api/detail';
+import { getActivityById  } from '../../api/detail';
 import { useEffect, useState } from 'react';
 import { 
   FiCalendar, 

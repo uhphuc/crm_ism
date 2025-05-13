@@ -433,13 +433,19 @@ const CustomersContent = () => {
                             </div>
                             <div className="flex flex-col">
                                 <label className="text-sm font-medium text-gray-700">Source</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={formData.source}
                                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                                     className="mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    
-                                />
+                                >
+                                    <option value="">Select Source</option>
+                                    <option value="Trade Show">Trade Show</option>
+                                    <option value="Website">Website</option>
+                                    <option value="Referral">Referral</option>
+                                    <option value="Social Media">Social Media</option>
+                                    <option value="Email Campaign">Email Campaign</option>
+                                    <option value="other">Other</option>
+                                </select>
                             </div>
                             <div className="flex flex-col">
                                 <label className="text-sm font-medium text-gray-700">Company</label>

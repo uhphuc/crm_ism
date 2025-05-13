@@ -1,8 +1,9 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { getInvoiceById } from '../api/detail'; // Adjust the import path as necessary
+import { getInvoiceById } from '../../api/detail'; // Adjust the import path as necessary
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../hook/useAuth';
 import { 
   FiDollarSign, 
   FiCalendar, 
@@ -25,7 +26,9 @@ const InvoiceDetailPage = () => {
   const [invoice, setInvoice] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isCustomer = user.role === 'customer';
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
@@ -224,7 +227,7 @@ const InvoiceDetailPage = () => {
 
             {/* Payment Information */}
             {
-                invoice.paymentDate && (
+                invoice.paymentDate ? (
                     <div className="bg-gradient-to-br from-lime-50 to-green-50 p-5 rounded-xl border border-lime-100">
                         <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
                         <FiCheckCircle className="mr-2" /> Payment Received
@@ -240,6 +243,42 @@ const InvoiceDetailPage = () => {
                         </p>
                         <p className="text-gray-700">
                             Payment Note: {invoice.note ? invoice.note : 'No note provided by the customer'}
+                        </p>
+                    </div>
+                ) : (isCustomer && !invoice.paymentDate) ? (
+                    <div className="bg-gradient-to-br from-red-50 to-pink-50 p-5 rounded-xl border border-red-100">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <FiXCircle className="mr-2" /> {invoice.status.toUpperCase()}
+                        </h3>
+                        <p className="text-gray-700">
+                        Payment Due: {formatDate(invoice.dueDate)}
+                        </p>
+                        <p className="text-gray-700">
+                        Amount Due: {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: invoice.currency
+                        }).format(invoice.totalAmount)}
+                        </p>
+                        {
+                          (invoice.status === 'cancelled' || invoice.status === 'sent') && (
+                           <button 
+                           onClick={() => (
+                            navigate(`/customer/home/support`)
+                           )}
+                            className="mt-4 px-4 py-2 bg-indigo-800 text-white hover:bg-indigo-900 flex items-center">
+                              <FiSend className="mr-2" /> Provide Payment Proof
+                            </button>
+                            
+                          )
+                        }
+                    </div>
+                ) : (
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <FiClock className="mr-2" /> {invoice.status}
+                        </h3>
+                        <p className="text-gray-700">
+                        Invoice is not paid yet.
                         </p>
                     </div>
                 )

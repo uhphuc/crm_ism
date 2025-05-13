@@ -2,54 +2,58 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../models');
-const User = db.User; // Utilisation de l'importation depuis db.User
+const User = db.User; 
+const Customer = db.Customer;
 
 // Configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
-/**
- * Inscription d'un nouvel utilisateur
- */
 exports.register = async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
   
   try {
-    // Vérifier si l'utilisateur existe déjà
+
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ 
         success: false,
-        message: 'Un utilisateur avec cet email existe déjà' 
+        message: 'Email has already been taken' 
       });
     }
 
-    // Validation des données
+    const existingCustomer = await Customer.findOne({ where: { email } });
+    if (!existingCustomer) {
+      await Customer.create({
+        firstName,
+        lastName,
+        email,
+        source: 'website',
+        status: 'customer',
+      });
+    }
+
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ 
         success: false,
-        message: 'Tous les champs sont obligatoires' 
+        message: 'Please provide all required fields' 
       });
     }
 
-    // Hachage du mot de passe
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-    // Création de l'utilisateur
     const user = await User.create({ 
       firstName, 
       lastName, 
       email, 
       password: hashedPassword,
-      role: role || 'sales', // Valeur par défaut si non spécifiée
+      role: role || 'sales',
       isActive: true
     });
 
-    // Création du token JWT
     const token = generateToken(user);
 
-    // Réponse sans exposer le mot de passe
     const userResponse = user.toJSON();
     delete userResponse.password;
 
@@ -69,14 +73,10 @@ exports.register = async (req, res) => {
   }
 };
 
-/**
- * Connexion d'un utilisateur
- */
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   
   try {
-    // Validation des données
     if (!email || !password) {
       return res.status(400).json({ 
         success: false,
@@ -84,7 +84,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Recherche de l'utilisateur
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(404).json({ 
@@ -93,7 +92,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Vérification si le compte est actif
     if (!user.isActive) {
       return res.status(403).json({ 
         success: false,
@@ -101,7 +99,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ 
@@ -110,10 +107,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Mise à jour de la date de dernière connexion
     await user.update({ lastLogin: new Date() });
 
-    // Génération du token
     const token = generateToken(user);
 
     res.json({ 
@@ -138,12 +133,10 @@ exports.login = async (req, res) => {
   }
 };
 
-/**
- * Récupération des informations de l'utilisateur connecté
- */
+
 exports.getMe = async (req, res) => {
   try {
-    // L'utilisateur est déjà disponible depuis le middleware d'authentification
+
     const user = await User.findByPk(req.userId, {
       attributes: { exclude: ['password'] }
     });
@@ -168,9 +161,7 @@ exports.getMe = async (req, res) => {
   }
 };
 
-/**
- * Génération d'un token JWT
- */
+
 const generateToken = (user) => {
   return jwt.sign(
     { 

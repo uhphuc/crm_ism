@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getUserById } from '../api/detail'; // Adjust the import path as necessary
+import { getUserById } from '../../api/detail'; // Adjust the import path as necessary
 import { FiUser, FiMail, FiPhone, FiCalendar, FiEdit } from 'react-icons/fi';
 
 const UserDetail = () => {

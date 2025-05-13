@@ -6,10 +6,16 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import HomePage from './page/homePage.jsx';
 import AdminDashboard from './page/adminDashboard.jsx';
 import SalesDashboard from './page/salesDashboard.jsx';
-import CustomerDetail from './page/customerDetail.jsx';
-import DealDetailPage from './page/dealDetail.jsx';
-import InvoiceDetailPage from './page/invoiceDetail.jsx';
-import ActivityDetail from './page/activityDetail.jsx';
+import CustomerDetail from './page/details/customerDetail.jsx';
+import DealDetailPage from './page/details/dealDetail.jsx';
+import InvoiceDetailPage from './page/details/invoiceDetail.jsx';
+import ActivityDetail from './page/details/activityDetail.jsx';
+import CustomerHomePage from './page/customer/customerHomePage.jsx';
+import CustomerEdit from './page/customer/editCustomer.jsx';
+import DealList from './page/customer/dealList.jsx';
+import ActivityList from './page/customer/activityList.jsx';
+import Support from './page/customer/support.jsx';
+import InvoiceList from './page/customer/invoiceList.jsx';
 import Register from './page/signUp.jsx';
 import ProtectedRoute from './routes/protectedRoute.jsx';
 
@@ -22,7 +28,8 @@ function App() {
   const { user } = useAuth()
 
   const isAdmin = user && (user.role === 'admin' || user.role === 'manager');
-  const isSalesOrSupport = user && (user.role === 'sales' || user.role === 'support');
+  const isSalesOrSupport = user && (user.role === 'sales');
+  const isCustomer = user && (user.role === 'customer');
 
   return (
     <Router>
@@ -49,6 +56,19 @@ function App() {
           {/* Add more routes here */}
         </Route>
 
+        <Route path="/customer" element={<ProtectedRoute isAllowed={isCustomer}><MainLayout /></ProtectedRoute>}>
+          <Route index element={<CustomerHomePage />} />
+          <Route path="edit" element={<CustomerEdit />} />
+          <Route path="home" element={<CustomerHomePage />} >
+            <Route path="deals" element={<DealList />} />
+            <Route path="deals/:id" element={<DealDetailPage />} />
+            <Route path="invoices" element={<InvoiceList />} />
+            <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+            <Route path="activities" element={<ActivityList />} />
+            <Route path="edit" element={<CustomerEdit />} />
+            <Route path="support" element={<Support />} />
+          </Route>
+        </Route>
 
         
       </Routes>

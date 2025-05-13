@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { getDealById } from '../api/detail';
+import { getDealById } from '../../api/detail';
 import { useEffect, useState } from 'react';
 import { 
   FiDollarSign, 

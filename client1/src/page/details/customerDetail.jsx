@@ -11,7 +11,7 @@ import {
   editCustomerById,
   getDealsByCustomerId,
   getInvoiceByCustomerId
-} from '../api/detail'; // Adjust the import path as necessary
+} from '../../api/detail'; // Adjust the import path as necessary
 
 const CustomerDetail = () => {
   const { id } = useParams();

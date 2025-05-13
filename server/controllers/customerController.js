@@ -36,6 +36,17 @@ exports.getOne = async (req, res) => {
   }
 };
 
+exports.getByEmail = async (req, res) => {
+  const { email } = req.params;
+  try {
+    const customer = await Customer.findOne({ where: { email } });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.create = async (req, res) => {
   try {
     const newCustomer = await Customer.create({ ...req.body });

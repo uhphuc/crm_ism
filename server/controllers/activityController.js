@@ -151,10 +151,13 @@ exports.filter = async (req, res) => {
 
 exports.getByCustomerId = async (req, res) => {
   try {
-    const { customer_id } = req.params;
+    const customer_id  = req.params.customerId;
     const activities = await Activity.findAll({
-      where: { customer_id },
-      include: [{ model: Customer, as: 'customer' }],
+      where: { customerId: customer_id },
+      include: [
+        { model: Customer, as: 'customer' },
+        { model: User, as: 'user' },
+      ],
     });
     res.json(activities);
   } catch (err) {

@@ -12,6 +12,7 @@ router.put('/:id/assign', customerController.assignToUser); // Assign customer t
 router.delete('/:id', customerController.delete);
 router.get('/search', customerController.search); // Search and filter functionality
 router.get('/:id/all',  customerController.getMyCustomers); // Get customers assigned to the logged-in user
+router.get('/email/:email', customerController.getByEmail); // Get customer by email
 
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const db = require('../models');
 const User = db.User; // Utilisation de l'importation depuis db.User
+const Customer = db.Customer;
 
 
 exports.newUser = async (req, res) => { 
